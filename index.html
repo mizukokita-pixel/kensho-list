@@ -263,6 +263,23 @@
   }
   .announce-chip.sel { background: #d6e4f7; border-color: #2c5aa0; font-weight: bold; }
   .announce-chip.clear { background: #f3f3f3; color: #999; }
+  /* 当選した名義を選ぶボタン。応募の名義と見分けがつくよう少し小さめにする */
+  .won-chip {
+    font-size: 13px;
+    font-weight: bold;
+    background: #f0f0f0;
+    color: #888;
+    border: 2px solid transparent;
+    border-radius: 20px;
+    padding: 5px 13px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .won-chip.sel {
+    background: #fff3d6;
+    color: #a06800;
+    border-color: #e8a317;
+  }
   .name-chip.chip-line { background: #e8f8e8; color: #1a7a3a; }
   .name-chip.chip-line.sel {
     background: #d4f5d4;
@@ -520,7 +537,7 @@
     <h1>🛒 懸賞買い物リスト</h1>
     <button class="reset-btn" onclick="resetAll()">↩ リセット</button>
   </div>
-  <div class="header-date">2026年9月5日更新　応募できる<span id="active-count">261</span>件</div>
+  <div class="header-date">2026年9月7日更新　応募できる<span id="active-count">247</span>件</div>
   <div class="tabs">
     <button class="tab-btn" onclick="switchTab('new',this)">🆕 NEW</button>
     <button class="tab-btn" onclick="switchTab('store',this)">店舗</button>
@@ -594,7 +611,7 @@
         <button class="name-chip chip-line" data-name="Mラ" onclick="toggleNameChip(this)">Mラ</button>
         <button class="name-chip chip-line" data-name="たラ" onclick="toggleNameChip(this)">たラ</button>
       </div>
-      <input id="apply-name-free" type="text" placeholder="その他の名義（Z・Kなど）" style="width:100%;margin-top:7px;padding:7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;">
+      <input id="apply-name-free" type="text" oninput="buildWonChips()" placeholder="その他の名義（Z・Kなど）" style="width:100%;margin-top:7px;padding:7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;">
     </div>
     <div style="margin-bottom:10px;">
       <div style="font-size:11px;color:#bbb;font-weight:bold;margin-bottom:4px;letter-spacing:0.4px;">応募方法</div>
@@ -612,6 +629,10 @@
     <div style="margin-bottom:14px;">
       <div style="font-size:11px;color:#e74c3c;font-weight:bold;margin-bottom:4px;letter-spacing:0.4px;">🎯 当選したら記入</div>
       <input id="apply-won" type="text" placeholder="例: ￥2000、食品" style="width:100%;padding:7px 10px;border:1px solid #f5c6c6;border-radius:8px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;">
+      <div id="apply-won-names-area" style="display:none;margin-top:7px;">
+        <div style="font-size:11px;color:#bbb;font-weight:bold;margin-bottom:5px;letter-spacing:0.4px;">どの名義で当たった？（タップで選択）</div>
+        <div id="apply-won-names" style="display:flex;gap:7px;flex-wrap:wrap;"></div>
+      </div>
     </div>
     <div style="display:flex;gap:8px;">
       <button onclick="saveApply()" style="flex:1;padding:10px;background:#e74c3c;color:white;border:none;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;font-family:inherit;">記録する</button>
@@ -663,13 +684,13 @@ const STATE_KEY = 'kenshow_state_v3';
 
 const allData = {
   store: [
-    {id:'s_14a6224c',since:1788430883185,announce:'',store:'いなげや',maker:'キッコーマン',deadline:'10/7(水)〆切',dlClass:'dl-green',buy:'対象商品含\n500円(税込)以上\n購入ﾚｼｰﾄ応募',method:'LINE･ハガキ',prize:'商品券1000円･250名',url:'https://www.select-cp.com/2026aw/09/X-09-018/?utm_source=list&utm_medium=shop'},
+    {id:'s_14a6224c',since:1788430883185,announce:'',store:'いなげや',maker:'キッコーマン',deadline:'10/7(水)〆切',dlClass:'dl-yellow',buy:'対象商品含\n500円(税込)以上\n購入ﾚｼｰﾄ応募',method:'LINE･ハガキ',prize:'商品券1000円･250名',url:'https://www.select-cp.com/2026aw/09/X-09-018/?utm_source=list&utm_medium=shop'},
     {id:'s_0000c697',since:1788337156591,announce:'',store:'かわねや',maker:'マルちゃん',deadline:'9/1〜9/30(水)〆切',dlClass:'dl-yellow',buy:'対象商品1点以上含\n1000円(税込)以上\n購入ﾚｼｰﾄ応募',method:'LINE(ハガキ)',prize:'商品券2000円･50名\nQUO500円･50名',url:'https://get-cp.jp/campain/pages/top/sfa158'},
     {id:'s_1ee1d0ac',since:1788337156591,announce:'',store:'まるたか生鮮市場',maker:'マルちゃん',deadline:'9/1〜9/30(水)〆切',dlClass:'dl-yellow',buy:'対象商品1点以上含\n2000円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB(ハガキ)',prize:'商品券5000円･10名\n商品券2000円･50名',url:'https://get-cp.jp/campain/pages/top/sfa159'},
     {id:'s_b64d4b4b',since:1788516722097,announce:'',store:'イオン',maker:'ヤマモリ・丸美屋・永谷園・加藤産業・三島食品',deadline:'9/27（9/30）',dlClass:'dl-yellow',buy:'イオン対象店舗にて、イオンお買物アプリの「クーポン・会員コードを使う」をタップして表示されるバーコードをスキャンのうえ、対象商品500円(税抜)以上購入ごとを1口として、イオンお買物アプリで応募',method:'イオン対象店舗にて、イオンお買物アプリの「クーポン・会員コー',prize:'食料品1,000円(税抜)引きイオンお買物アプリ値引クーポン×500名',url:'https://kenshomin.hatenablog.jp/entry/2026/09/04/140200'},
     {id:'s_1572bc98',since:1788337156591,announce:'',store:'イオン',maker:'くまのプーさん',deadline:'10/11(日)23:59',dlClass:'dl-green',buy:'5000円(税込)を1口として\n購入ﾚｼｰﾄ応募',method:'WEB･iAEON',prize:'特大プーさんぬいぐるみ･100名\nプーさんパズル･100名\nﾃﾞｨｽﾞﾆｰｽﾄｱ1万円･232名\nﾃﾞｨｽﾞﾆｰﾌﾟﾗｽ5000円･400名',url:'https://chirashi.otoku.aeonsquare.net/pc/chirashi/aeon_pooh100th/?utm_source=aeon_retail&utm_medium=referral&utm_campaign=retailjp_top&_gl=1*16xqmn4*_ga*MjA4NTgwMTI1My4xNzg4MjYyNjUz*_ga_NKWMN91MD3*czE3ODgyNjI2ODQkbzEkZzEkdDE3ODgyNjI2ODQkajYwJGwwJGgw&_ga=2.94058136.465788701.1788262654-2085801253.1788262653'},
     {id:'s_6818d64d',since:1788430883185,announce:'',store:'イオン',maker:'キッコーマン',deadline:'11/7(土)〆切',dlClass:'dl-green',buy:'対象商品含\n500円(税込)以上\n購入ﾚｼｰﾄ応募',method:'LINE･ハガキ',prize:'商品券1000円･50名',url:'https://www.select-cp.com/2026aw/09/X-09-007/?utm_source=list&utm_medium=shop'},
-    {id:'s_36db3c23',since:1788253693621,announce:'',store:'イオン',maker:'',deadline:'10/7(水)23:59',dlClass:'dl-green',buy:'A･B\n対象商品1点以上含\n500円(税込)以上',method:'WEB',prize:'A･5000円･50名\nB･2000円･800名\nC･ｵｰﾌﾞﾝﾚﾝｼﾞ･100名\nD･美顔器･60名',url:'https://iicoto.info/campaign/2609yogurt/'},
+    {id:'s_36db3c23',since:1788253693621,announce:'',store:'イオン',maker:'',deadline:'10/7(水)23:59',dlClass:'dl-yellow',buy:'A･B\n対象商品1点以上含\n500円(税込)以上',method:'WEB',prize:'A･5000円･50名\nB･2000円･800名\nC･ｵｰﾌﾞﾝﾚﾝｼﾞ･100名\nD･美顔器･60名',url:'https://iicoto.info/campaign/2609yogurt/'},
     {id:'s_135b175d',since:1788516722097,announce:'',store:'エコスグループ',maker:'ヤマザキビスケット',deadline:'9/30消印',dlClass:'dl-yellow',buy:'エコスグループ対象店舗にて、ヤマザキビスケット商品150円(税込)ごとのレシートを1口として、郵送で応募',method:'ハガキ',prize:'防災グッズ×80名',url:'https://kenshomin.hatenablog.jp/entry/2026/09/04/140500'},
     {id:'s_94ef1dad',since:1788337156591,announce:'',store:'エースワン',maker:'マルちゃん･シマヤ',deadline:'9/1〜9/30(水)〆切',dlClass:'dl-yellow',buy:'対象商品2点以上含\n1500円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB(ハガキ)',prize:'商品券3000円･50名\nQUO1000円･50名',url:'https://get-cp.jp/campain/pages/top/sfa163'},
     {id:'s_d1732d2e',since:1788430883185,announce:'',store:'エースワン',maker:'キッコーマン',deadline:'11/7(土)〆切',dlClass:'dl-green',buy:'対象商品含\n500円(税込)以上\n購入ﾚｼｰﾄ応募',method:'LINE･ハガキ',prize:'商品券1000円･40名',url:'https://www.select-cp.com/2026aw/09/S-09-015/?utm_source=list&utm_medium=shop'},
@@ -678,8 +699,8 @@ const allData = {
     {id:'s_a77a0dcf',since:1788430883185,announce:'',store:'オーケー',maker:'シマダヤ',deadline:'10/31（11/6）',dlClass:'dl-green',buy:'オーケーにて、シマダヤ商品300円(税抜)以上購入したレシートを1口として、郵送で応募',method:'ハガキ',prize:'JCBギフトカード3,000円分×100名',url:'https://kenshomin.hatenablog.jp/entry/2026/09/03/140400'},
     {id:'s_c3d059a3',since:1788337156591,announce:'',store:'サミット',maker:'伊藤園',deadline:'10/2(金)当日消印有効',dlClass:'dl-yellow',buy:'伊藤園全商品\n対象商品300円(税込)以上含\n700円(税込)以上\n購入ﾚｼｰﾄ応募',method:'ハガキ',prize:'Aお笑い公演･50組100名\nB商品券2000円･120名',url:'https://www.summitstore.co.jp/wp-content/uploads/2026/08/31125201/よしもと.jpg'},
     {id:'s_0f9b85d4',since:1788430883185,announce:'',store:'サンエー',maker:'キッコーマン',deadline:'11/7(土)〆切',dlClass:'dl-green',buy:'対象商品含\n500円(税込)以上\n購入ﾚｼｰﾄ応募',method:'LINE･ハガキ',prize:'商品券2000円･50名',url:'https://www.select-cp.com/2026aw/09/S-09-012/?utm_source=list&utm_medium=shop'},
-    {id:'s_aff76c76',since:1788430883185,announce:'',store:'スーパーサンシ',maker:'キッコーマン',deadline:'10/7(水)〆切',dlClass:'dl-green',buy:'対象商品含\n500円(税込)以上\n購入ﾚｼｰﾄ応募',method:'LINE･ハガキ',prize:'商品券1000円･34名',url:'https://www.select-cp.com/2026aw/09/T-09-008/?utm_source=list&utm_medium=shop'},
-    {id:'s_bf746b9e',since:1788430883185,announce:'',store:'セブンスター',maker:'キッコーマン',deadline:'10/7(水)〆切',dlClass:'dl-green',buy:'対象商品含\n500円(税込)以上\n購入ﾚｼｰﾄ応募',method:'LINE･ハガキ',prize:'商品券1000円･50名',url:'https://www.select-cp.com/2026aw/09/S-09-006/?utm_source=list&utm_medium=shop'},
+    {id:'s_aff76c76',since:1788430883185,announce:'',store:'スーパーサンシ',maker:'キッコーマン',deadline:'10/7(水)〆切',dlClass:'dl-yellow',buy:'対象商品含\n500円(税込)以上\n購入ﾚｼｰﾄ応募',method:'LINE･ハガキ',prize:'商品券1000円･34名',url:'https://www.select-cp.com/2026aw/09/T-09-008/?utm_source=list&utm_medium=shop'},
+    {id:'s_bf746b9e',since:1788430883185,announce:'',store:'セブンスター',maker:'キッコーマン',deadline:'10/7(水)〆切',dlClass:'dl-yellow',buy:'対象商品含\n500円(税込)以上\n購入ﾚｼｰﾄ応募',method:'LINE･ハガキ',prize:'商品券1000円･50名',url:'https://www.select-cp.com/2026aw/09/S-09-006/?utm_source=list&utm_medium=shop'},
     {id:'s_69d35ebf',since:1788337156591,announce:'',store:'ダイレックス',maker:'マルちゃん',deadline:'9/1〜9/30(水)〆切',dlClass:'dl-yellow',buy:'対象商品2点以上含\n1000円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB(ハガキ)',prize:'商品券3000円･500名\nｶﾀﾛｸﾞｷﾞﾌﾄ･300名',url:'https://get-cp.jp/campain/pages/top/sfa157'},
     {id:'s_19dbc258',since:1788516722097,announce:'',store:'ダイレックス',maker:'サントリーフーズ',deadline:'11/6(金)〆切',dlClass:'dl-green',buy:'対象商品2本以上含\n1500円(税込)以上\n購入ﾚｼｰﾄ応募',method:'LINE･ハガキ',prize:'A･年末ｼﾞｬﾝﾎﾞ50枚･40名\nB･5000円･80名',url:'https://get-cp.jp/campain/pages/keihinpage/1?cid=yume28'},
     {id:'s_2ea54a78',since:1788430883185,announce:'',store:'ドラッグストアセキ',maker:'キッコーマン',deadline:'11/7(土)〆切',dlClass:'dl-green',buy:'対象商品含\n500円(税込)以上\n購入ﾚｼｰﾄ応募',method:'LINE･ハガキ',prize:'商品券1000円･200名',url:'https://www.select-cp.com/2026aw/09/X-09-013/?utm_source=list&utm_medium=shop'},
@@ -699,13 +720,11 @@ const allData = {
     {id:'s_f691eb13',since:1788516722097,announce:'',store:'日本食研 「ムーミン」',maker:'「ザ・ドレッシング」コラボキャンペーン',deadline:'9/30',dlClass:'dl-yellow',buy:'日本食研対象商品を購入したレシートを1口として、WEBから応募',method:'WEB',prize:'A賞：リトルミイのお皿※直径22.5cmのパスタボウル×50名\nB賞：アクリルキーホルダー3種＋日本食研 商品3品×50名',url:'https://sgfm.jp/f/mooming0nihonshokken202607'},
     {id:'s_a57d070c',since:1788337156591,announce:'',store:'食鮮館タイヨー',maker:'マルちゃん',deadline:'9/1〜9/30(水)〆切',dlClass:'dl-yellow',buy:'対象商品1点以上含\n1000円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB(ハガキ)',prize:'商品券2000円･100名\nW･マルちゃんｾｯﾄ･50名',url:'https://get-cp.jp/campain/pages/top/sfa164'},
     {id:'s_1a006bd1',since:1787184102774,announce:'',store:'NewDays',maker:'森永製菓',deadline:'9/15(火)〆切',dlClass:'dl-yellow',buy:'森永製菓全商品\n（アイスを除く）\n対象商品含\n600円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB・ハガキ',prize:'抱き枕・10名\n森永工場見学・20組40名\n森永製菓セット・30名',url:'https://retail.jr-cross.co.jp/newdays/campaign/202608_hichew.html'},
-    {id:'s_9343cafe',since:1785761643014,announce:'',store:'いなげや',maker:'ニチレイフーズ',deadline:'8/31（9/6）',dlClass:'dl-red',buy:'いなげやにて、ニチレイ冷凍食品3品以上を購入したレシートを1口として、WEBから応募',method:'WEB',prize:'A賞：キッザニア東京入場チケット×15組30名\nB賞：いなげや商品券5,000円分×10名\nC賞：ニチレイ冷凍食品詰め合わせ×15名',url:'https://kenshomin.hatenablog.jp/entry/2026/08/03/140200'},
     {id:'s_744dc9e2',since:1787814061326,announce:'',store:'いなげや・シンシナティ美術館展',maker:'',deadline:'9/28(月)当日消印有効',dlClass:'dl-yellow',buy:'2000円(税込)以上\n購入ﾚｼｰﾄ応募',method:'ハガキ',prize:'シンシナティ美術館展・150組300名',url:'https://www.inageya.co.jp/campaign/20260826_0929.html'},
     {id:'s_f1009cde',since:1786788715922,announce:'',store:'おかしのまちおか',maker:'グリコ',deadline:'8/1〜9/30(水)〆切',dlClass:'dl-yellow',buy:'対象商品300円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB・ハガキ',prize:'レシート金額最大3000円まで',url:'https://prm-cp.glico.com/3put9k8l4h'},
     {id:'s_39401959',since:1785565536372,announce:'',store:'とりせん',maker:'伊藤ハム ※サンリオピューロランド',deadline:'8/1〜9/30(水)当日消印有効',dlClass:'dl-yellow',buy:'伊藤ハム商品\n対象商品1940円(税込)以上\n購入ﾚｼｰﾄ+バーコード応募',method:'ハガキ',prize:'サンリオピューロランド',url:'https://www.torisen.co.jp/wp-content/uploads/2026/07/itouhamusanrioCP.pdf'},
     {id:'s_93626b90',since:1786090881155,announce:'',store:'とりせん',maker:'S&B',deadline:'●9/7(月)〆切',dlClass:'dl-red',buy:'対象商品1個以上含\n1000円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB・ハガキ',prize:'商品券3000円・30名',url:'https://www.ichance.jp/sb/cp-2026SS/62/#top'},
     {id:'s_33f2f648',since:1787549760096,announce:'',store:'ゆめタウン等',maker:'プリマハム',deadline:'11/2(月)〆切',dlClass:'dl-green',buy:'対象商品A1400・B1050円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB・ハガキ',prize:'A・SS席ペア・1組2名\nB・ペア・20組40名',url:'https://mrktsec.jp/primaham/2026takarazuka_izumi0829'},
-    {id:'s_d9dd1d95',since:1786346063524,announce:'10下',store:'イオン',maker:'ヒプノシスマイク買って、応募して、当てろ！コラボキャンペーン',deadline:'8/30（9/6）',dlClass:'dl-red',buy:'イオングループ対象店舗にて、各コースに必要な金額分購入ごとのレシートを1口として、WEBまたはiAEONエントリーで応募',method:'WEB',prize:'Aコース（5,000円応募）：超BIGアクスタ×18種各10名(合計180名)\nBコース（3,000円応募）：レコード型コースター(3枚セット)×6種各20名(合計120名)\nCコース（2,000円応募）：6種から選べる絶品グルメ×6種各50名×(合計300名)',url:'https://chirashi.otoku.aeonsquare.net/pc/chirashi/aeon_hypnosismiccp/'},
     {id:'s_ffe95611',since:1787995704584,announce:'',store:'イオン',maker:'キリンビール',deadline:'9/13（9/16）',dlClass:'dl-yellow',buy:'イオン対象店舗にて、イオンお買物アプリの「クーポン・会員コードを使う」をタップして表示されるバーコードをスキャンのうえ、対象の氷結500円(税抜)以上と お惣菜売場の中華総菜500円(税抜)以上購入ごとを1口として、イオンお買物アプリで応募',method:'イオン対象店舗にて、イオンお買物アプリの「クーポン・会員コー',prize:'食料品1,000円(税抜)引きイオンお買物アプリ値引クーポン×500名',url:'https://kenshomin.hatenablog.jp/entry/2026/08/29/140200'},
     {id:'s_eb33a308',since:1787995704584,announce:'',store:'イオン',maker:'日清食品',deadline:'9/13（9/16）',dlClass:'dl-yellow',buy:'イオン対象店舗にて、イオンお買物アプリの「クーポン・会員コードを使う」をタップして表示されるバーコードをスキャンのうえ、「チキンラーメン5食パック1つ」と「たまご1パック」購入ごとを1口として、イオンお買物アプリで応募',method:'イオン対象店舗にて、イオンお買物アプリの「クーポン・会員コー',prize:'食料品2,000円(税抜)引きイオンお買物アプリ値引クーポン×500名',url:'https://kenshomin.hatenablog.jp/entry/2026/08/29/140100'},
     {id:'s_4cf9d923',since:1785761643014,announce:'',store:'イオン',maker:'日本ハム',deadline:'10/4(日)23:59',dlClass:'dl-yellow',buy:'対象商品2000円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB',prize:'東京プリンスホテル\nシャウエッセンギフト・100名',url:'https://www.shincollection-campaign.com'},
@@ -721,11 +740,10 @@ const allData = {
     {id:'s_a43a8e43',since:1787213805725,announce:'11上',store:'オーケー',maker:'メルシャン',deadline:'9/13（9/18）',dlClass:'dl-yellow',buy:'オーケーにて、メルシャン対象商品400円(税込)以上購入したレシートを1口として、WEBから応募',method:'WEB',prize:'えらべるPay 2,000ポイント×100名',url:'https://cp.kirin.jp/story/38234'},
     {id:'s_948fd5e6',since:1787050213011,announce:'',store:'オーケー',maker:'森永製菓 ※キッザニア',deadline:'9/21(月)〆切',dlClass:'dl-yellow',buy:'森永製菓商品（アイス除く\n全品\n対象商品770円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB',prize:'A・キッザニア東京貸切・60組180名\nB・ニフレル・5組15名\nC・森永菓子セット・50名',url:'https://ap.morinaga.co.jp/enquete/index/kidzania_ok_2608'},
     {id:'s_7fa456b7',since:1787814061326,announce:'',store:'オーケー',maker:'キリン陸・キリン洋酒',deadline:'9/24(木)〆切',dlClass:'dl-yellow',buy:'対象商品1本以上含\n1000円(\n税抜',method:'WEB・ハガキ',prize:'ウイスキー富士・30名\nえらべるPay2000円・150名',url:'https://cp.kirin.jp/story/38418'},
-    {id:'s_c7daa5ae',since:1787549760096,announce:'',store:'オーケー',maker:'16社',deadline:'9/27（10/7）',dlClass:'dl-green',buy:'オーケーにて、対象メーカー商品3品以上を含む2,000円(税抜)以上購入したレシートを1口として、郵送で応募',method:'ハガキ',prize:'全国共通おこめ券21枚(9,240円分)×50名\n全国共通おこめ券14枚(6,160円分)×300名\nWチャンス：全国共通おこめ券7枚(3,080円分)×1,000名',url:'https://kenshomin.hatenablog.jp/entry/2026/08/24/140100'},
-    {id:'s_d6a173f8',since:1786090881155,announce:'10下',store:'オーケー',maker:'明治',deadline:'9/30（10/7）',dlClass:'dl-green',buy:'オーケーにて、明治対象商品3品以上を含む、Aコースは3,000円(税込)以上、B・Cコースは2,000円(税込)以上購入したレシートを1口として、LINEまたは郵送で応募',method:'LINE・ハガキ',prize:'Aコース：明治プロバイオヨーグルト1年分×30名\nBコース：Jackery製 ポータブル電源300Plus JE-300C×10名\nCコース：HUAWEI製 WATCH FIT4 Pro Black×10名',url:'https://get-cp.jp/campain/pages/top/meiji-okcp'},
+    {id:'s_c7daa5ae',since:1787549760096,announce:'',store:'オーケー',maker:'16社',deadline:'9/27（10/7）',dlClass:'dl-yellow',buy:'オーケーにて、対象メーカー商品3品以上を含む2,000円(税抜)以上購入したレシートを1口として、郵送で応募',method:'ハガキ',prize:'全国共通おこめ券21枚(9,240円分)×50名\n全国共通おこめ券14枚(6,160円分)×300名\nWチャンス：全国共通おこめ券7枚(3,080円分)×1,000名',url:'https://kenshomin.hatenablog.jp/entry/2026/08/24/140100'},
+    {id:'s_d6a173f8',since:1786090881155,announce:'10下',store:'オーケー',maker:'明治',deadline:'9/30（10/7）',dlClass:'dl-yellow',buy:'オーケーにて、明治対象商品3品以上を含む、Aコースは3,000円(税込)以上、B・Cコースは2,000円(税込)以上購入したレシートを1口として、LINEまたは郵送で応募',method:'LINE・ハガキ',prize:'Aコース：明治プロバイオヨーグルト1年分×30名\nBコース：Jackery製 ポータブル電源300Plus JE-300C×10名\nCコース：HUAWEI製 WATCH FIT4 Pro Black×10名',url:'https://get-cp.jp/campain/pages/top/meiji-okcp'},
     {id:'s_81a83d40',since:1786173176825,announce:'',store:'オーケー',maker:'キリンビール',deadline:'10/9(金)〆切',dlClass:'dl-green',buy:'対象商品1ケース\n購入ﾚｼｰﾄ応募',method:'WEB・ハガキ',prize:'HIS旅行券2万円・20名\nコールマンワゴン・25名\nえらべるPay2000・100名',url:'https://cp.kirin.jp/story/38250'},
     {id:'s_aa2b14c8',since:1787050213011,announce:'',store:'カワチ薬品',maker:'',deadline:'●10/19(月)〆切',dlClass:'dl-green',buy:'同日同店舗で\n7000・5000\n・3000円(税込)以上',method:'WEB・専用ハガキ',prize:'賞品',url:'https://www.cawachi.co.jp/customer/campaign/mega202608/'},
-    {id:'s_8c4ba401',since:1786090881155,announce:'',store:'コノミヤ',maker:'S&B',deadline:'●9/6(日)〆切',dlClass:'dl-red',buy:'対象商品1個以上含\n2000円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB・ハガキ',prize:'掃除機・10名\nコノミヤ2000円・40名\n商品券2000円・20名',url:'https://www.ichance.jp/sb/cp-2026SS/58/#top'},
     {id:'s_8f4c101d',since:1787456214413,announce:'',store:'コモディイイダ',maker:'日本製紙クレシア',deadline:'9/7',dlClass:'dl-red',buy:'日本製紙クレシア対象商品\n対象商品1点以上を含む1,000円(税込)以上のレシートで応募（レシート有効期間6/1〜8/31、複数枚合算可）',method:'WEB・ハガキ',prize:'えらべるPay 1,500ポイント 100名',url:'https://crecia-comodiiida-cp.com/cp2026'},
     {id:'s_b42493a3',since:1788091450433,announce:'',store:'コープデリ',maker:'サントリーフーズ',deadline:'9/24（9/30）',dlClass:'dl-yellow',buy:'コープデリ対象店舗にて、サントリー対象商品を24本購入したレシートを1口として、WEBまたは郵送で応募',method:'WEB・ハガキ',prize:'えらべるPay2,000円分×35名',url:'https://iyemoncampaign.com/26042/'},
     {id:'s_9010c5d6',since:1786090881155,announce:'9下',store:'サミット',maker:'日清食品',deadline:'8/31（9/7）',dlClass:'dl-red',buy:'サミットにて、日清焼そばU.F.O.ブランド3個を含む1,000円(税込)以上を購入したレシートを1口として、郵送で応募',method:'ハガキ',prize:'よみうりランド ペアワンデーパス＆マイU.F.O.ファクトリー体験チケット×60組120名\nWチャンス：サミット商品券1,000円分×120名',url:'https://kenshomin.hatenablog.jp/entry/2026/08/06/140100'},
@@ -733,11 +751,8 @@ const allData = {
     {id:'s_0f670116',since:1786346063524,announce:'10上',store:'サントリー',maker:'映画ちいかわ人魚の島のひみつ',deadline:'8/31（9/8）',dlClass:'dl-red',buy:'サントリー対象商品を購入したレシートをアップロードしてポイントを貯め、各コースに必要なポイントを1口として応募',method:'サントリー対象商品を購入したレシートをアップロードしてポイン',prize:'8本コース：ひんやり浮き輪型クッション×50名\n4本コース：オリジナルキャリーオンバッグ×250名',url:'https://www.suntory.co.jp/softdrink/allbrands/202607/cp01/'},
     {id:'s_a5e1d6ba',since:1786090881155,announce:'',store:'サントリー伊右衛門 NOPE',maker:'エコスグループ共同企画',deadline:'',dlClass:'dl-gray',buy:'キャンペーンサイトからエントリー後、ハッピーカードを提示のうえ、サントリー対象商品2点以上を含む500円(税込)以上購入ごとに1口として応募',method:'キャンペーンサイトからエントリー後、ハッピーカードを提示のう',prize:'1等：ハッピーカード電子マネー20,000円分×5名\n2等：ハッピーカード電子マネー5,000円分×20名\n3等：ハッピーカード電子マネー1,000円分×100名',url:'https://mdh.fm/e?kA803PTe13'},
     {id:'s_dc4e5b16',since:1787301881204,announce:'',store:'サンドラッググループ',maker:'ポムポムプリン',deadline:'9/30（10/4）',dlClass:'dl-yellow',buy:'サンドラッグにて、各コースに必要な金額以上購入したレシートを1口として、WEBから応募',method:'WEB',prize:'〈1会計税込3,000円コース〉\nサンドラッググループ専用QUOカードPay 20,000円分×100名\nポムポムプリン ホーローカフェポット＆ミトン2個セット(オリジナルデザイン)×30名\n〈1会計税込1,500円コース〉\nサンドラッググループ専用QUOカードPay 10,000円分×50名\nポムポムプリン 3WAYブランケット(オリジナルデザイン)×50名\n〈Wチャンス(第1弾・第2弾)〉\nサンドラッググループ専用QUOカードPay 500円分×9,540名',url:'https://sundrug-2026.cp-page.com/pompompurin-cp/index.html'},
-    {id:'s_2d096bf9',since:1786436143331,announce:'9下',store:'スギ薬局',maker:'UCC上島珈琲',deadline:'8/30（9/6）',dlClass:'dl-red',buy:'スギ薬局にて、UCC上島珈琲対象商品1,000円(税込)購入ごとにスギ薬局アプリで1スタンプを貯め、1スタンプ1口として応募',method:'スギ薬局にて、UCC上島珈琲対象商品1,000円(税込)購入',prize:'Aコース：UCC商品詰合せ(2,000円相当)×120名\nBコース：スギポイント500ポイント×100名',url:'https://www.sugi-net.jp/sugi-channel/4663'},
-    {id:'s_a50666e2',since:1786436143331,announce:'',store:'スギ薬局',maker:'キユーピー',deadline:'8/30（9/6）',dlClass:'dl-red',buy:'スギ薬局にて、キューピー対象商品500円(税込)購入ごとにスギ薬局アプリで1スタンプを貯め、各コースに必要なスタンプを1口として応募',method:'スギ薬局にて、キューピー対象商品500円(税込)購入ごとにス',prize:'Aコース(スタンプ3個)：スギポイント10,000ポイント×10名\nBコース(スタンプ2個)：スギポイント2,000ポイント×25名\nCコース(スタンプ1個)：スギポイント500ポイント×100名',url:'https://www.sugi-net.jp/sugi-channel/4653'},
-    {id:'s_e70e4ec2',since:1786436143331,announce:'',store:'スギ薬局',maker:'ハウス食品',deadline:'8/30（9/6）',dlClass:'dl-red',buy:'スギ薬局にて、ハウス食品対象商品500円(税込)購入ごとにスギ薬局アプリで1スタンプを貯め、1スタンプ1口として応募',method:'スギ薬局にて、ハウス食品対象商品500円(税込)購入ごとにス',prize:'スギポイント3,000ポイント×50名',url:'https://www.sugi-net.jp/sugi-channel/4642'},
-    {id:'s_fe0b5ef2',since:1786436143331,announce:'9下',store:'スギ薬局',maker:'カゴメ',deadline:'9/6（9/13）',dlClass:'dl-yellow',buy:'スギ薬局にて、カゴメ対象商品300円(税込)購入ごとにスギ薬局アプリで1スタンプを貯め、各コースに必要なスタンプを1口として応募',method:'スギ薬局にて、カゴメ対象商品300円(税込)購入ごとにスギ薬',prize:'3スタンプコース：スギポイント8,310ポイント×10名\n2スタンプコース：カゴメ商品詰め合わせ5,000円相当×10名',url:'https://www.sugi-net.jp/sugi-channel/4712'},
-    {id:'s_cb0e29ed',since:1786436143331,announce:'9下',store:'スギ薬局',maker:'森永製菓',deadline:'9/6（9/13）',dlClass:'dl-yellow',buy:'スギ薬局にて、ハイチュウ商品を1点とハイチュウを含む森永製菓のお菓子合計500円(税込)購入ごとにスギ薬局アプリで1スタンプを貯め、各賞に必要なスタンプを1口として応募',method:'スギ薬局にて、ハイチュウ商品を1点とハイチュウを含む森永製菓',prize:'A賞(スタンプ2個)：ハイチュウロゴがあなたの名前に！100個セット×20名\nB賞(スタンプ2個)：オリジナルポーチ＆森永製菓お菓子詰め合わせ×50名\nC賞(スタンプ1個)：スギポイント812ポイント×50名',url:'https://www.sugi-net.jp/sugi-channel/4492'},
+    {id:'s_fe0b5ef2',since:1786436143331,announce:'9下',store:'スギ薬局',maker:'カゴメ',deadline:'9/6（9/13）',dlClass:'dl-red',buy:'スギ薬局にて、カゴメ対象商品300円(税込)購入ごとにスギ薬局アプリで1スタンプを貯め、各コースに必要なスタンプを1口として応募',method:'スギ薬局にて、カゴメ対象商品300円(税込)購入ごとにスギ薬',prize:'3スタンプコース：スギポイント8,310ポイント×10名\n2スタンプコース：カゴメ商品詰め合わせ5,000円相当×10名',url:'https://www.sugi-net.jp/sugi-channel/4712'},
+    {id:'s_cb0e29ed',since:1786436143331,announce:'9下',store:'スギ薬局',maker:'森永製菓',deadline:'9/6（9/13）',dlClass:'dl-red',buy:'スギ薬局にて、ハイチュウ商品を1点とハイチュウを含む森永製菓のお菓子合計500円(税込)購入ごとにスギ薬局アプリで1スタンプを貯め、各賞に必要なスタンプを1口として応募',method:'スギ薬局にて、ハイチュウ商品を1点とハイチュウを含む森永製菓',prize:'A賞(スタンプ2個)：ハイチュウロゴがあなたの名前に！100個セット×20名\nB賞(スタンプ2個)：オリジナルポーチ＆森永製菓お菓子詰め合わせ×50名\nC賞(スタンプ1個)：スギポイント812ポイント×50名',url:'https://www.sugi-net.jp/sugi-channel/4492'},
     {id:'s_88fda539',since:1787469718401,announce:'',store:'スギ薬局',maker:'ニッスイ',deadline:'9/13（9/20）',dlClass:'dl-yellow',buy:'スギ薬局にて、ニッスイ対象商品500円(税込)購入ごとにスギ薬局アプリで1スタンプを貯め、1スタンプ1口として応募',method:'スギ薬局にて、ニッスイ対象商品500円(税込)購入ごとにスギ',prize:'スギポイント10,000ポイント×20名',url:'https://www.sugi-net.jp/sugi-channel/4719'},
     {id:'s_3d236980',since:1786436143331,announce:'11上',store:'スギ薬局',maker:'P＆G',deadline:'10/4（10/11）',dlClass:'dl-green',buy:'スギ薬局にて、P＆G対象商品3,000円(税込)購入ごとにスギ薬局アプリで1スタンプを貯め、1スタンプ1口として応募',method:'スギ薬局にて、P＆G対象商品3,000円(税込)購入ごとにス',prize:'星野リゾート宿泊ギフト券50,000円分×50名\nスギポイント50,000ポイント×50名\nWチャンス：スギポイント50ポイント×5,000名',url:'https://www.sugi-net.jp/sugi-channel/4656'},
     {id:'s_21228a93',since:1787050213011,announce:'',store:'ダイレックス',maker:'キリンビール',deadline:'10/5(月)23:59',dlClass:'dl-yellow',buy:'対象商品ケース\n・6缶パック\n購入ﾚｼｰﾄ応募',method:'WEB',prize:'サンドラッググループQUOPay',url:'https://cp.kirin.jp/story/38263'},
@@ -747,35 +762,29 @@ const allData = {
     {id:'s_32038861',since:1787184102774,announce:'',store:'ファミリーマート',maker:'三養',deadline:'',dlClass:'dl-gray',buy:'ファミリーマートにて、対象商品を購入したレシートを1口として、LINEで応募',method:'LINE',prize:'Amazonギフト券3,000円分×10名\nAmazonギフト券500円分×990名',url:'https://kenshomin.hatenablog.jp/entry/2026/08/19/140200'},
     {id:'s_7cde205c',since:1787184102774,announce:'',store:'ベイシア',maker:'明治',deadline:'9/7(月)当日消印有効',dlClass:'dl-red',buy:'対象商品1300円(税込)以上\n購入ﾚｼｰﾄ応募',method:'ハガキ',prize:'パークチケットペア・50組100名\nW・ディズニータンブラー・200名',url:'https://ameblo.jp/rsj64177/entry-12976198507.html'},
     {id:'s_be0cc751',since:1787184102774,announce:'',store:'ベイシア',maker:'ロッテアイス',deadline:'10/4(日)〆切',dlClass:'dl-yellow',buy:'対象商品1品以上含\n500円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB・ハガキ',prize:'保冷バッグ・100名\nロッテアイスセット・50名',url:'https://www.lotte.co.jp/entertainment/area_campaign/l26060007/'},
-    {id:'s_056c8744',since:1786090881155,announce:'',store:'マルイ・エスマート・わたなべ生鮮館',maker:'S&B',deadline:'●9/5(土)〆切',dlClass:'dl-red',buy:'対象商品1個以上含\n1000円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB・ハガキ',prize:'ウォーターサーバー・2名\nレコルト自動調理ポット・4名\n商品券2000円・30名',url:'https://www.ichance.jp/sb/cp-2026SS/50/#top'},
     {id:'s_e1dc4435',since:1787999085317,announce:'',store:'マルエツ',maker:'ひつじ年キユーピー',deadline:'11/10(火)当日消印有効',dlClass:'dl-green',buy:'バーコード1枚貼付応募',method:'ハガキ',prize:'ひつじ年キユーピー・150名',url:'https://ameblo.jp/rsj64177/entry-12977152257.html'},
     {id:'s_7abd9a5b',since:1787050213011,announce:'',store:'マルエツ・わくわくキャンペーン',maker:'',deadline:'●ﾊｶﾞｷ･9/29(火)当日消印有効',dlClass:'dl-yellow',buy:'対象商品500円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB･ハガキ',prize:'T-falスチームシュプレ･100名',url:'https://www.tv-asahi.co.jp/wakuwaku/'},
-    {id:'s_b16c3e43',since:1786788715922,announce:'11上',store:'ヤオコー',maker:'ハウス食品・貝印',deadline:'9/13',dlClass:'dl-yellow',buy:'ヤオコーにて、ヤオコーネットクラブに登録されたヤオコーカードをご提示のうえ、対象商品1点以上を含む1,000円(税込)ごとの購入を1口として、WEBから応募',method:'WEB',prize:'A賞：貝印 調理器具SELECT100 3点セット×10名\nB賞：GABAN®レシピ本・ハウス秋冬新商品全部試せる！30点詰め合わせ×10名\nC賞：関孫六 わかたけ 三徳・ハウス人気商品 6点詰め合わせ×40名',url:'https://nc.yaoko-net.com/campaigns/2608cooking/'},
+    {id:'s_b16c3e43',since:1786788715922,announce:'11上',store:'ヤオコー',maker:'ハウス食品・貝印',deadline:'9/13',dlClass:'dl-red',buy:'ヤオコーにて、ヤオコーネットクラブに登録されたヤオコーカードをご提示のうえ、対象商品1点以上を含む1,000円(税込)ごとの購入を1口として、WEBから応募',method:'WEB',prize:'A賞：貝印 調理器具SELECT100 3点セット×10名\nB賞：GABAN®レシピ本・ハウス秋冬新商品全部試せる！30点詰め合わせ×10名\nC賞：関孫六 わかたけ 三徳・ハウス人気商品 6点詰め合わせ×40名',url:'https://nc.yaoko-net.com/campaigns/2608cooking/'},
     {id:'s_d4da9ccc',since:1787549760096,announce:'',store:'ヤオコー',maker:'ヤマザキビスケット',deadline:'9/15消印',dlClass:'dl-yellow',buy:'ヤオコーにて、ヤマザキビスケット商品150円(税込)ごとのレシートを1口として、郵送で応募',method:'ハガキ',prize:'防災グッズ×200名',url:'https://kenshomin.hatenablog.jp/entry/2026/08/24/140400'},
     {id:'s_8d035099',since:1785565536372,announce:'11中',store:'ヤオコー',maker:'明治',deadline:'9/30',dlClass:'dl-yellow',buy:'対象商品購入',method:'',prize:'A賞 5,000円コース：ヤオコー商品券10万円分×4名\nB賞 2,500円コース：ヤオコー商品券5万円分×8名\nC賞 500円コース：ヤオコー商品券2,000円分×100名\nWチャンス賞：ヤオコーカードポイント500P×200名',url:'https://nc.yaoko-net.com/campaigns/2608meiji'},
     {id:'s_43f95819',since:1785761643014,announce:'10',store:'ヤオコー',maker:'キーコーヒー',deadline:'9/30消印',dlClass:'dl-yellow',buy:'ヤオコーにて、キーコーヒー・リプトン商品いずれか1品以上を含む500円(税込)以上購入したレシートを1口として、郵送で応募',method:'ハガキ',prize:'A賞：ヤオコー商品券10,000円分×15名\nB賞：ヤオコー商品券3,000円分×50名',url:'https://kenshomin.hatenablog.jp/entry/2026/08/03/140400'},
-    {id:'s_bea6babc',since:1785761643014,announce:'10中',store:'ヤオコー',maker:'久原醤油',deadline:'9/30（10/6）',dlClass:'dl-green',buy:'ヤオコーにて久原醤油対象商品2品を含む1,500円(税込)以上購入したレシートを1口として、郵送で応募',method:'ハガキ',prize:'A賞：ライオンズホームユニフォーム×10名\nB賞：ヤオコー商品券3,000円分×50名\n特別賞：久原醤油商品詰め合わせセット×30名',url:'https://kenshomin.hatenablog.jp/entry/2026/08/03/140300'},
-    {id:'s_3d14a379',since:1786346063524,announce:'',store:'ヤオコー',maker:'キリンビバレッジ',deadline:'9/30（10/6）',dlClass:'dl-green',buy:'ヤオコーにて、キリンビバレッジ対象商品を含む800円(税込)以上購入したレシートを1口として、郵送で応募',method:'ハガキ',prize:'A賞：キリン 午後の紅茶 ミルクティー 500ml 1ケース×100名\nB賞：ヤオコー商品券2,000円分×100名',url:'https://kenshomin.hatenablog.jp/entry/2026/08/09/140500'},
+    {id:'s_bea6babc',since:1785761643014,announce:'10中',store:'ヤオコー',maker:'久原醤油',deadline:'9/30（10/6）',dlClass:'dl-yellow',buy:'ヤオコーにて久原醤油対象商品2品を含む1,500円(税込)以上購入したレシートを1口として、郵送で応募',method:'ハガキ',prize:'A賞：ライオンズホームユニフォーム×10名\nB賞：ヤオコー商品券3,000円分×50名\n特別賞：久原醤油商品詰め合わせセット×30名',url:'https://kenshomin.hatenablog.jp/entry/2026/08/03/140300'},
+    {id:'s_3d14a379',since:1786346063524,announce:'',store:'ヤオコー',maker:'キリンビバレッジ',deadline:'9/30（10/6）',dlClass:'dl-yellow',buy:'ヤオコーにて、キリンビバレッジ対象商品を含む800円(税込)以上購入したレシートを1口として、郵送で応募',method:'ハガキ',prize:'A賞：キリン 午後の紅茶 ミルクティー 500ml 1ケース×100名\nB賞：ヤオコー商品券2,000円分×100名',url:'https://kenshomin.hatenablog.jp/entry/2026/08/09/140500'},
     {id:'s_f3835c7f',since:1788182141692,announce:'',store:'ヤオコー',maker:'森永製菓',deadline:'9/30消印',dlClass:'dl-yellow',buy:'ヤオコーにて、森永製菓のお菓子商品300円(税抜)以上を含む1,000円(税抜)以上購入したレシートを1口として、郵送で応募',method:'ハガキ',prize:'A賞：キッザニア東京ペアチケット(こども・大人)×25組50名\nB賞：森永製菓お菓子詰め合わせ×30名',url:'https://kenshomin.hatenablog.jp/entry/2026/08/31/140200'},
-    {id:'s_7c86cf40',since:1787301881204,announce:'',store:'ヤオコー',maker:'キリン午後の紅茶',deadline:'10/6(火)当日消印有効',dlClass:'dl-green',buy:'対象商品含\n800円(税込)以上\n購入ﾚｼｰﾄ応募',method:'ハガキ',prize:'午後の紅茶24本・100名\n商品券2000円・100名',url:'https://ameblo.jp/rsj64177/entry-12976303490.html'},
-    {id:'s_d64f084d',since:1786090881155,announce:'',store:'ヤオマサ',maker:'S&B',deadline:'●9/5(土)〆切',dlClass:'dl-red',buy:'対象商品1個以上含\n2000円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB・ハガキ',prize:'商品券3000円・20名',url:'https://www.ichance.jp/sb/cp-2026SS/57/#top'},
+    {id:'s_7c86cf40',since:1787301881204,announce:'',store:'ヤオコー',maker:'キリン午後の紅茶',deadline:'10/6(火)当日消印有効',dlClass:'dl-yellow',buy:'対象商品含\n800円(税込)以上\n購入ﾚｼｰﾄ応募',method:'ハガキ',prize:'午後の紅茶24本・100名\n商品券2000円・100名',url:'https://ameblo.jp/rsj64177/entry-12976303490.html'},
     {id:'s_b94cd698',since:1787549760096,announce:'',store:'ヨークベニマル',maker:'ディズニー5社',deadline:'9/25(金)〆切',dlClass:'dl-yellow',buy:'対象商品1300円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB・ハガキ',prize:'パークチケットペア・150組300名\nトートバッグ・250名',url:'https://cp.kirin.jp/story/38157'},
     {id:'s_67a0a528',since:1785938263302,announce:'',store:'ライフ',maker:'テーブルマーク',deadline:'9/7(月)〆切',dlClass:'dl-red',buy:'対象商品1点以上含\n500円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB・ハガキ',prize:'商品券2000円・50名',url:'https://ndpb.f.msgs.jp/n/form/c/v1/ndpb/forms/PWB3ymCSWdWBNUXem-eCR'},
-    {id:'s_c5e8afe1',since:1786173176825,announce:'',store:'ライフ',maker:'デビフペット×ペティオ×マースジャパンリミテッド',deadline:'9/30（10/7）',dlClass:'dl-green',buy:'ライフにて、対象商品500円(税抜)以上購入したレシートを1口として、郵送で応募',method:'ハガキ',prize:'ライフ商品券5,000円分×20名',url:'https://kenshomin.hatenablog.jp/entry/2026/08/08/140800'},
+    {id:'s_c5e8afe1',since:1786173176825,announce:'',store:'ライフ',maker:'デビフペット×ペティオ×マースジャパンリミテッド',deadline:'9/30（10/7）',dlClass:'dl-yellow',buy:'ライフにて、対象商品500円(税抜)以上購入したレシートを1口として、郵送で応募',method:'ハガキ',prize:'ライフ商品券5,000円分×20名',url:'https://kenshomin.hatenablog.jp/entry/2026/08/08/140800'},
     {id:'s_81f069db',since:1788182141692,announce:'',store:'ライフ',maker:'プリマハム･宝塚貸切',deadline:'10/5(月)〆切',dlClass:'dl-yellow',buy:'A\n対象商品1400円(税込)以上\nB',method:'WEB・ハガキ',prize:'東京宝塚劇場貸切',url:'https://mrktsec.jp/primaham/2026takarazuka_lifecorp0901'},
-    {id:'s_5dfa921a',since:1785938263302,announce:'',store:'ライフ',maker:'伊藤ハム',deadline:'10/6(火)当日消印有効',dlClass:'dl-green',buy:'伊藤ハム商品全品\n対象商品1940(\n税抜\n)以上',method:'ハガキ',prize:'サンリオピューロランド',url:'https://ameblo.jp/rsj64177/entry-12974835974.html'},
-    {id:'s_140e09cd',since:1785938263302,announce:'',store:'ライフ',maker:'',deadline:'●9/6(日)〆切',dlClass:'dl-red',buy:'5000円(税込)\n以上\n購入ﾚｼｰﾄ応募',method:'WEB・ハガキ',prize:'商品券10万円・10名\n商品券5万円・40名\n商品券1万円・70名\nビオラルセット・100名\nポイント3000円・100名\nW・ポイント500・3000名',url:'https://www.ichance.jp/cp/lifesummer2026cp/#top'},
-    {id:'s_abe5ddee',since:1786436143331,announce:'9中',store:'ランドリン',maker:'スギ薬局50周年キャンペーン',deadline:'8/30（9/6）',dlClass:'dl-red',buy:'スギ薬局にて、対象商品1,100円(税込)購入ごとにスギ薬局アプリで1スタンプを貯め、1スタンプ1口として応募',method:'スギ薬局にて、対象商品1,100円(税込)購入ごとにスギ薬局',prize:'ランドリンサクラアロマキャンドル(非売品)×500名\nスギポイント2,000ポイント×50名',url:'https://www.sugi-net.jp/sugi-channel/4518'},
-    {id:'s_75120286',since:1787050213011,announce:'',store:'ロジャース',maker:'グリコ',deadline:'10/7(水)当日消印有効',dlClass:'dl-green',buy:'対象商品300円(税込)以上含\n500円(税込)以上\n購入ﾚｼｰﾄ応募',method:'ハガキ',prize:'ギフトカード1000円・50名\nポッキーリュック・30名',url:'https://www.rogers.co.jp/campaign/campaign.html?id=37'},
+    {id:'s_5dfa921a',since:1785938263302,announce:'',store:'ライフ',maker:'伊藤ハム',deadline:'10/6(火)当日消印有効',dlClass:'dl-yellow',buy:'伊藤ハム商品全品\n対象商品1940(\n税抜\n)以上',method:'ハガキ',prize:'サンリオピューロランド',url:'https://ameblo.jp/rsj64177/entry-12974835974.html'},
+    {id:'s_75120286',since:1787050213011,announce:'',store:'ロジャース',maker:'グリコ',deadline:'10/7(水)当日消印有効',dlClass:'dl-yellow',buy:'対象商品300円(税込)以上含\n500円(税込)以上\n購入ﾚｼｰﾄ応募',method:'ハガキ',prize:'ギフトカード1000円・50名\nポッキーリュック・30名',url:'https://www.rogers.co.jp/campaign/campaign.html?id=37'},
     {id:'s_fbe62c67',since:1787549760096,announce:'',store:'ロピア',maker:'キリンビール',deadline:'10/9(金)23:59',dlClass:'dl-green',buy:'対象商品含\n2000円(\n税抜',method:'WEB',prize:'ビールセミナー・15組30名\nビール4缶+GODIVA・89名\n商品券1万円・60名',url:'https://cp.kirin.jp/story/38261'},
     {id:'s_ee52c28a',since:1788182141692,announce:'',store:'ロピア',maker:'プリマハム･ダイヤモンドホースシュー',deadline:'11/23(月祝)〆切',dlClass:'dl-green',buy:'対象商品3880円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB・ハガキ',prize:'ﾀﾞｲﾔﾓﾝﾄﾞﾎｰｽｼｭｰ招待･30組120名',url:'https://mrktsec.jp/primaham/2026dhs_lopia0901'},
     {id:'s_1bdfc487',since:1788182141692,announce:'',store:'万代',maker:'',deadline:'10/1(木)〆切',dlClass:'dl-yellow',buy:'対象商品500円(\n税抜\n)以上含',method:'WEB・ハガキ',prize:'賞品',url:'https://dantotsu.mandaicp.jp'},
-    {id:'s_bdaec4ba',since:1786090881155,announce:'',store:'不二屋',maker:'S&B',deadline:'●9/5(土)〆切',dlClass:'dl-red',buy:'対象商品1個以上含\n2000円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB・ハガキ',prize:'電気圧力鍋・2名\nレコルト自動調理ポット・4名\nJCB1000円・10名',url:'https://www.ichance.jp/sb/cp-2026SS/49/#top'},
     {id:'s_775fd1d6',since:1786090881155,announce:'',store:'丸久グループ',maker:'S&B',deadline:'●9/7(月)〆切',dlClass:'dl-red',buy:'対象商品1個以上含\n500円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB・ハガキ',prize:'商品券3000円・72名',url:'https://www.ichance.jp/sb/cp-2026SS/63/#top'},
     {id:'s_d7806f8c',since:1786090881155,announce:'',store:'京阪ザストア',maker:'S&B',deadline:'●9/7(月)〆切',dlClass:'dl-red',buy:'対象商品1個以上含\n2000円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB・ハガキ',prize:'電気圧力鍋・1名\nウォーターサーバー・2名\n商品券3000円・10名',url:'https://www.ichance.jp/sb/cp-2026SS/65/#top'},
     {id:'s_72b823fe',since:1786090881155,announce:'',store:'原信ナルス',maker:'S&B',deadline:'●9/7(月)〆切',dlClass:'dl-red',buy:'対象商品2個以上含\n1000円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB・ハガキ',prize:'商品券1万円・30名',url:'https://www.ichance.jp/sb/cp-2026SS/55/#top'},
     {id:'s_079bdd83',since:1788182141692,announce:'',store:'富士シティオ',maker:'プリマハム･宝塚貸切',deadline:'11/5(月)〆切',dlClass:'dl-green',buy:'A\n対象商品1400円(税込)以上\nB',method:'WEB・ハガキ',prize:'東京宝塚劇場貸切',url:'https://mrktsec.jp/primaham/2026takarazuka_fujicitio0901'},
-    {id:'s_20a065d9',since:1786090881155,announce:'',store:'山形屋ストア',maker:'S&B',deadline:'●9/5(土)〆切',dlClass:'dl-red',buy:'対象商品1個以上含\n1000円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB・ハガキ',prize:'商品券5000円・10名\n商品券1000円・20名',url:'https://www.ichance.jp/sb/cp-2026SS/60/#top'},
     {id:'s_4f96d454',since:1786090881155,announce:'',store:'新潟マルイ',maker:'S&B',deadline:'●9/7(月)〆切',dlClass:'dl-red',buy:'対象商品1個以上含\n1000円(税込)以上\n購入ﾚｼｰﾄ応募',method:'WEB・ハガキ',prize:'商品券6000円・10名',url:'https://www.ichance.jp/sb/cp-2026SS/54/#top'},
     {id:'s_484d7928',since:1786090881155,announce:'',store:'日清',maker:'エコスグループコラボキャンペーン',deadline:'',dlClass:'dl-gray',buy:'キャンペーンサイトからエントリー後、ハッピーカードを提示のうえ、日清・エコス対象商品を2点同時購入ごとを1口として応募',method:'キャンペーンサイトからエントリー後、ハッピーカードを提示のう',prize:'ハッピーカード電子マネー1,000円分×30名',url:'https://kenshomin.hatenablog.jp/entry/2026/08/06/140500'},
     {id:'s_273c9f92',since:1787050213011,announce:'',store:'森永乳業 マウントレーニア',maker:'サンリオキャラクターズ',deadline:'',dlClass:'dl-gray',buy:'森永乳業対象商品を3本購入したレシートを1口として、WEBから応募',method:'WEB',prize:'Aコース：マウントレーニアコラボぬいぐるみマスコット ハローキティ×100名\nBコース：マウントレーニアコラボぬいぐるみマスコット ポムポムプリン×100名\nCコース：マウントレーニアコラボぬいぐるみマスコット シナモロール×100名\nDコース：マウントレーニアコラボぬいぐるみマスコット ポチャッコ×100名',url:'https://morinagamilk-cp.campaigns.jp/apply/input?lp=mtr2026cp'},
@@ -803,11 +812,9 @@ const allData = {
     {id:'m_ece42d85',since:1787184102774,announce:'',category:'食品',cat:'cat-food',maker:'マースジャパンリミテッド　マースジャパンリミテッド 毎週当たる！BE-KIND®キャンペーン',deadline:'',dlClass:'dl-gray',buy:'マースジャパンリミテッド「BE-KIND®」を各コースに必要な本数購入したレシートを1口として、WEBから応募',method:'WEB',prize:'対象製品1本購入：えらべるPay 300円分×毎週100名(合計800名)\n対象製品2本購入：えらべるPay 1,000円分×毎週30名(240名)\n対象製品3本購入：えらべるPay 5,000円分×毎週10名(80名)\n対象製品5本購入：えらべるPay 20,000円分×毎週1名(合計8名)',url:'https://bekind-cp.jp/campaign_2026/'},
     {id:'m_da425039',since:1787301881204,announce:'11中',category:'食品',cat:'cat-food',maker:'サントリー　サントリー －196 ケースでまとめ買いがお得！キャンペーン',deadline:'',dlClass:'dl-gray',buy:'サントリー対象商品を購入したレシートをLINEからアップロードしてポイントを貯め、各コースに必要なポイントを1口として応募',method:'LINE',prize:'6ポイントコース：ギフトペイ777円分×700名\n24ポイントコース：ギフトペイ7,777円分×70名\n48ポイントコース：ギフトペイ77,777円分×7名',url:'https://mobile.suntory.co.jp/cpn/rtd/196/202608171/'},
     {id:'m_caab7331',since:1787396353117,announce:'',category:'食品',cat:'cat-food',maker:'大森屋　大森屋 もりもり食べて元気に！ 成長期応援キャンペーン',deadline:'',dlClass:'dl-gray',buy:'大森屋対象商品を各コースに必要な個数購入したレシートを1口として、WEBまたは郵送で応募',method:'WEB・ハガキ',prize:'対象商品3点購入：えらべるPay 10,000円分×100名\n対象商品2点購入：金賞健康米 宮城県産ひとめぼれ 5kg×65名\n対象商品10点購入：象印 圧力IH炊飯ジャー 極め炊き×20名',url:'https://ohmoriya-cp.jp/seichoukiouen'},
-    {id:'m_99620e0d',since:1785591579106,announce:'',category:'食品',cat:'cat-food',maker:'アメリカンビーフ　アメリカンビーフ×スカイロケットカンパニー',deadline:'8/1〜9/6(日)23:59',dlClass:'dl-red',buy:'対象店にて\n対象メニュー注文\n応募ステッカーをもらう',method:'WEB',prize:'BBQイベント・100名',url:'https://www.americanmeat.jp/csm/topics/american_burger2026/cp/'},
-    {id:'m_48b44680',since:1786436143331,announce:'10中',category:'食品',cat:'cat-food',maker:'スギ薬局　スギ薬局 エコ探キャンペーン',deadline:'8/30（9/6）',dlClass:'dl-red',buy:'スギ薬局にて、対象商品200円(税込)購入ごとにスギ薬局アプリで1スタンプを貯め、各コースに必要なスタンプを1口として応募',method:'スギ薬局にて、対象商品200円(税込)購入ごとにスギ薬局アプ',prize:'10スタンプコース：バルミューダ GreenFan C2×3名\n7スタンプコース：カタログギフト「やさしいみらい」きらりコース×10名\n4スタンプコース：電気を使わない生ごみ処理機 ル・カエル×20名',url:'https://www.sugi-net.jp/sugi-channel/4548'},
-    {id:'m_cac7f661',since:1786346063524,announce:'10上',category:'食品',cat:'cat-food',maker:'アサヒビール　アサヒビール くら寿司お食事券が抽選で当たるキャンペーン',deadline:'8/31（9/13）',dlClass:'dl-yellow',buy:'アサヒビール対象商品を6本以上購入したレシートを1口として、WEBから応募',method:'WEB',prize:'くら寿司お食事券4,000円分×250名',url:'https://cpmaster.jp/kKihE3wexz/onestep/'},
-    {id:'m_02e81280',since:1786436143331,announce:'10中',category:'食品',cat:'cat-food',maker:'スギ薬局　スギ薬局 映画『ブルーロック』キャンペーン',deadline:'8/30（9/13）',dlClass:'dl-yellow',buy:'スギ薬局にて、対象商品3,000円(税込)購入ごとにスギ薬局アプリで1スタンプを貯め、1スタンプ1口として応募',method:'スギ薬局にて、対象商品3,000円(税込)購入ごとにスギ薬局',prize:'夏を乗り切れ！『ブルーロック』エゴTシャツ（非売品）×5名\nスギポイント3,000ポイント×300名',url:'https://www.sugi-net.jp/sugi-channel/4340'},
-    {id:'m_7251eba7',since:1787050213011,announce:'',category:'食品',cat:'cat-food',maker:'サントリー酒類　※ユニバ貸切　サントリー酒類　※ユニバ貸切',deadline:'第1弾8/18〜9/13(日)23:59',dlClass:'dl-yellow',buy:'対象商品購入ﾚｼｰﾄ応募\nA3000・B1500\nC2000・D1000円(税込)',method:'LINE',prize:'サントリープレミア貸切ナイト',url:'https://ssl1.suntory.co.jp/cpn/CSUNQ2608181RECE/top.html'},
+    {id:'m_cac7f661',since:1786346063524,announce:'10上',category:'食品',cat:'cat-food',maker:'アサヒビール　アサヒビール くら寿司お食事券が抽選で当たるキャンペーン',deadline:'8/31（9/13）',dlClass:'dl-red',buy:'アサヒビール対象商品を6本以上購入したレシートを1口として、WEBから応募',method:'WEB',prize:'くら寿司お食事券4,000円分×250名',url:'https://cpmaster.jp/kKihE3wexz/onestep/'},
+    {id:'m_02e81280',since:1786436143331,announce:'10中',category:'食品',cat:'cat-food',maker:'スギ薬局　スギ薬局 映画『ブルーロック』キャンペーン',deadline:'8/30（9/13）',dlClass:'dl-red',buy:'スギ薬局にて、対象商品3,000円(税込)購入ごとにスギ薬局アプリで1スタンプを貯め、1スタンプ1口として応募',method:'スギ薬局にて、対象商品3,000円(税込)購入ごとにスギ薬局',prize:'夏を乗り切れ！『ブルーロック』エゴTシャツ（非売品）×5名\nスギポイント3,000ポイント×300名',url:'https://www.sugi-net.jp/sugi-channel/4340'},
+    {id:'m_7251eba7',since:1787050213011,announce:'',category:'食品',cat:'cat-food',maker:'サントリー酒類　※ユニバ貸切　サントリー酒類　※ユニバ貸切',deadline:'第1弾8/18〜9/13(日)23:59',dlClass:'dl-red',buy:'対象商品購入ﾚｼｰﾄ応募\nA3000・B1500\nC2000・D1000円(税込)',method:'LINE',prize:'サントリープレミア貸切ナイト',url:'https://ssl1.suntory.co.jp/cpn/CSUNQ2608181RECE/top.html'},
     {id:'m_1ad4a9e2',since:1787301881204,announce:'',category:'食品',cat:'cat-food',maker:'リケンのノンオイル青じそ　リケンのノンオイル青じそ',deadline:'8/21〜9/15(火)23:59',dlClass:'dl-yellow',buy:'リケンのノンオイル青じそ\n190・380ml\n対象商品1本以上\n購入ﾚｼｰﾄ応募',method:'WEB',prize:'ランチョンマット・100名',url:'https://www.rikenvitamin.jp/news/detail/20260818112545.html'},
     {id:'m_3a7dd3d0',since:1787396353117,announce:'10上',category:'食品',cat:'cat-food',maker:'理研ビタミン　理研ビタミン 禁断の青カラキャンペーン',deadline:'9/15',dlClass:'dl-yellow',buy:'理研ビタミン対象商品を1本以上購入したレシートを1口として、WEBから応募',method:'WEB',prize:'禁断の青カラ ランチョンマット×100名',url:'https://rikenvitamin-aokaracp.jp/'},
     {id:'m_78910132',since:1786788715922,announce:'',category:'食品',cat:'cat-food',maker:'ドンキホーテ　ドンキホーテ・ユニー・ロビンフッド×UCC　※ディズニー',deadline:'9/17(木)当日消印有効',dlClass:'dl-yellow',buy:'対象商品1290円(税込)以上\n購入ﾚｼｰﾄ応募',method:'ハガキ',prize:'パークチケットペア・75組150名\nW・タンブラー・計100名',url:'https://ameblo.jp/rsj64177/entry-12975783814.html'},
@@ -832,9 +839,9 @@ const allData = {
     {id:'m_b1a5c291',since:1786522738005,announce:'10中',category:'日用品',cat:'cat-daily',maker:'越後製菓80周年記念　越後製菓80周年記念 越後から季節のグルメ食材プレゼントキャンペーン 第1弾',deadline:'9/30',dlClass:'dl-yellow',buy:'越後製菓対象商品を購入したレシートを1口として、LINEで応募',method:'LINE',prize:'A賞：にいがた和牛「新発田牛」ももステーキ 200g 化粧箱入×40名\nB賞：\nWチャンス(全3弾応募)：越後製菓商品詰め合わせ×80名',url:'https://www.cp-lp.jp/echigoseika_80th_thankscp/'},
     {id:'m_8dc2b9ea',since:1788430883185,announce:'10中',category:'食品',cat:'cat-food',maker:'銀座コージーコーナー　銀座コージーコーナー モンブランリニューアルキャンペーン',deadline:'9/30（10/4）',dlClass:'dl-yellow',buy:'銀座コージーコーナーにて、生ケーキ1,500円(税込)ごとのレシートを1口として、WEBから応募',method:'WEB',prize:'A賞：オリジナルレジカゴ保冷バッグ×30名\nB賞：マドレーヌ(12個入)×50名\nWチャンス賞：オリジナルタンブラー×50名',url:'https://www.cozycorner.co.jp/campaign/newitem/37473.html'},
     {id:'m_5aa82295',since:1787469718401,announce:'',category:'食品',cat:'cat-food',maker:'オーケー　オーケー・野菜くだもの　※関東限定',deadline:'10/4(日)〆切',dlClass:'dl-yellow',buy:'青果品\n期間中\nオーケーカードを利用し\n対象商品1000円以上',method:'アプリ',prize:'T-falセット9・60名',url:'https://ok-corporation.jp/news/entry-3297.html'},
-    {id:'m_01ad9bce',since:1788221398315,announce:'',category:'食品',cat:'cat-food',maker:'フジパン　フジパン パンパパーン♪キャンペーン 2026秋',deadline:'11/30（10/7）',dlClass:'dl-green',buy:'フジパン対象商品に付いている応募券を各コースに必要な点数分を1口として、郵送で応募',method:'ハガキ',prize:'〈んーぱ＆ネオバタくんコース〉\n15点応募：三菱 ブレッドオーブン×100名\n10点応募：BRUNO オーブントースター×900名\n5点応募：んーぱ＆ネオバタくんトート×4,500名\n〈ミッフィーコース〉\n5点応募：ミッフィートート×4,500名',url:'https://www.fujipan.co.jp/campaign/2026_a/'},
-    {id:'m_a5254b6d',since:1785565536372,announce:'',category:'食品',cat:'cat-food',maker:'明治・ヘモグロビンA1c・LG21　※関東エリア限定　明治・ヘモグロビンA1c・LG21　※関東エリア限定',deadline:'●10/7(水)23:59',dlClass:'dl-green',buy:'対象商品購入ﾚｼｰﾄ応募\nポイント貯め応募',method:'LINE',prize:'1・えらべるPay1000円・500名\n21・えらべるPay500',url:'https://get-cp.jp/campain/pages/top/kantou-13'},
-    {id:'m_1058fab9',since:1787469718401,announce:'',category:'食品',cat:'cat-food',maker:'オーケー　オーケー',deadline:'●10/7(水)〆切',dlClass:'dl-green',buy:'対象商品3品以上含\n2000円(\n税抜',method:'WEB・ハガキ',prize:'おこめ券',url:'https://ok.campaign-pr.jp'},
+    {id:'m_01ad9bce',since:1788221398315,announce:'',category:'食品',cat:'cat-food',maker:'フジパン　フジパン パンパパーン♪キャンペーン 2026秋',deadline:'11/30（10/7）',dlClass:'dl-yellow',buy:'フジパン対象商品に付いている応募券を各コースに必要な点数分を1口として、郵送で応募',method:'ハガキ',prize:'〈んーぱ＆ネオバタくんコース〉\n15点応募：三菱 ブレッドオーブン×100名\n10点応募：BRUNO オーブントースター×900名\n5点応募：んーぱ＆ネオバタくんトート×4,500名\n〈ミッフィーコース〉\n5点応募：ミッフィートート×4,500名',url:'https://www.fujipan.co.jp/campaign/2026_a/'},
+    {id:'m_a5254b6d',since:1785565536372,announce:'',category:'食品',cat:'cat-food',maker:'明治・ヘモグロビンA1c・LG21　※関東エリア限定　明治・ヘモグロビンA1c・LG21　※関東エリア限定',deadline:'●10/7(水)23:59',dlClass:'dl-yellow',buy:'対象商品購入ﾚｼｰﾄ応募\nポイント貯め応募',method:'LINE',prize:'1・えらべるPay1000円・500名\n21・えらべるPay500',url:'https://get-cp.jp/campain/pages/top/kantou-13'},
+    {id:'m_1058fab9',since:1787469718401,announce:'',category:'食品',cat:'cat-food',maker:'オーケー　オーケー',deadline:'●10/7(水)〆切',dlClass:'dl-yellow',buy:'対象商品3品以上含\n2000円(\n税抜',method:'WEB・ハガキ',prize:'おこめ券',url:'https://ok.campaign-pr.jp'},
     {id:'m_2f998aa0',since:1787549760096,announce:'',category:'食品',cat:'cat-food',maker:'ホソヤコーポレーション　ホソヤコーポレーション',deadline:'10/12(月)23:59',dlClass:'dl-green',buy:'対象商品1点以上\n購入ﾚｼｰﾄ応募',method:'WEB',prize:'竹虎の杉蒸篭・30名\nQUO500・100名',url:'https://hosoya-c.co.jp/campaign/'},
     {id:'m_e1521f9f',since:1785591579106,announce:'',category:'食品',cat:'cat-food',maker:'キリンビバドリーム ※リンク記事　キリンビバドリーム ※リンク記事',deadline:'8/3〜10/13(火)当日消印有効',dlClass:'dl-green',buy:'バーコード貼付応募',method:'郵送',prize:'',url:'https://ameblo.jp/rsj64177/entry-12974441333.html'},
     {id:'m_4aa1b0eb',since:1785938263302,announce:'11下',category:'食品',cat:'cat-food',maker:'キリンビバレッジ　キリンビバレッジ ビバ！ドリームキャンペーン',deadline:'10/13消印',dlClass:'dl-green',buy:'キリンビバレッジ対象商品のバーコードを各コースに必要な枚数を1口として、郵送で応募',method:'ハガキ',prize:'〈A 貸切ナイト＆ご宿泊コース〉\n2名様コース(45ptで応募)×18組36名\n4名様コース(55ptで応募)×12組48名\n〈B 貸切ナイトコース〉\n2名様コース(12ptで応募)×1,958組3,916名\n4名様コース(24ptで応募)×1,000組4,000名\n〈C パークチケットコース(15ptで応募)〉\n東京ディズニーリゾート®パークチケット(ペア)×500組1,000名\n〈D オリジナルグッズコース(6ptで応募)〉\nKIRINオリジナル 東京ディズニーリゾート®ロングTシャツ×500名\n〈D 生茶コース(6ptで応募)〉\nKIRINオリジナル 東京ディズニーシー®25周年デザイン刺繍キャップ×1,000名',url:'https://www.kirin.co.jp/campaign/beverage/viva/'},
@@ -1740,6 +1747,7 @@ function addHistory(id) {
     method: methodAbbr(item.method),
     announce: item.announce || '',   // 情報に発表時期があれば裏で自動セット
     wonWhat: '',
+    wonNames: [],
     note: ''
   };
   saveHist();
@@ -1782,6 +1790,7 @@ function toggleNameChip(btn) {
     const mEl = document.getElementById('apply-method');
     if ((n === 'M' || n === 'H') && !mEl.value.trim()) mEl.value = 'w';
   }
+  buildWonChips();
 }
 
 // 発表時期の選択チップを作る（翌月～2か月先の上中下＋未定）
@@ -1808,6 +1817,41 @@ function setAnnounce(v) {
   buildAnnounceChips();
 }
 
+// ===== 当選した名義（複数口を別名義で出したとき、どれが当たったかを残す）=====
+let _wonSel = [];
+// 選べるのは「その応募で使った名義」だけ。応募していない名義が当たることはないので、
+// 名義欄の内容からボタンを組み立てる。
+function currentApplyNames() {
+  const names = _applySel.slice();
+  const free = document.getElementById('apply-name-free').value.trim();
+  if (free) free.split(/[・,、\s]+/).forEach(n => { if (n && !names.includes(n)) names.push(n); });
+  return names;
+}
+function buildWonChips() {
+  const area = document.getElementById('apply-won-names-area');
+  const box = document.getElementById('apply-won-names');
+  if (!area || !box) return;
+  const names = currentApplyNames();
+  // 名義が1つも無い応募（店のアプリ応募など）は選びようがないので出さない
+  if (names.length === 0) {
+    area.style.display = 'none';
+    box.innerHTML = '';
+    _wonSel = [];
+    return;
+  }
+  _wonSel = _wonSel.filter(n => names.includes(n));   // 名義を変えたら選択も追従させる
+  area.style.display = 'block';
+  box.innerHTML = names.map(n =>
+    `<button class="won-chip${_wonSel.includes(n) ? ' sel' : ''}" data-won="${n}" onclick="toggleWonChip(this)">${n}</button>`
+  ).join('');
+}
+function toggleWonChip(btn) {
+  const n = btn.dataset.won;
+  const i = _wonSel.indexOf(n);
+  if (i >= 0) { _wonSel.splice(i, 1); btn.classList.remove('sel'); }
+  else { _wonSel.push(n); btn.classList.add('sel'); }
+}
+
 let applyManual = false;
 function openApply(id) {
   applyId = id;
@@ -1830,6 +1874,8 @@ function openApply(id) {
   document.getElementById('apply-announce').value = rec ? rec.announce : '';
   document.getElementById('apply-note').value = rec ? (rec.note || '') : '';
   document.getElementById('apply-won').value = rec ? rec.wonWhat : '';
+  _wonSel = rec && rec.wonNames ? rec.wonNames.slice() : [];
+  buildWonChips();
   document.getElementById('apply-del').style.display = rec ? 'inline-block' : 'none';
   // 既に記録がある案件（同じ月内の再応募も含む）は「別の応募として新しく記録」ボタンを出す
   // 同じidに上書きすると前の記録（当選メモ含む）が消えてしまうため
@@ -1844,6 +1890,8 @@ function startExtraApply() {
   applyManual = true;   // 元カードの応募済みマークには触れない
   document.getElementById('apply-note').value = '';
   document.getElementById('apply-won').value = '';
+  _wonSel = [];
+  buildWonChips();
   document.getElementById('apply-del').style.display = 'none';
   document.getElementById('apply-newmonth-area').style.display = 'none';
   buildAnnounceChips();
@@ -1863,6 +1911,8 @@ function openManualApply() {
   document.getElementById('apply-announce').value = '';
   document.getElementById('apply-note').value = '';
   document.getElementById('apply-won').value = '';
+  _wonSel = [];
+  buildWonChips();
   document.getElementById('apply-del').style.display = 'none';
   document.getElementById('apply-newmonth-area').style.display = 'none';
   buildAnnounceChips();
@@ -1883,7 +1933,7 @@ function saveApply() {
     if (!label) { alert('キャンペーン名を入力してください'); return; }
     const now = new Date();
     hist[id] = { ts: now.getTime(), date: (now.getMonth()+1)+'/'+now.getDate(),
-      label: label, names: ['M'], method: '', announce: '', wonWhat: '', note: '', manual: true };
+      label: label, names: ['M'], method: '', announce: '', wonWhat: '', wonNames: [], note: '', manual: true };
   } else {
     if (state[id] !== 'done') { state[id] = 'done'; saveState(); }
     if (!hist[id]) addHistory(id);
@@ -1899,6 +1949,8 @@ function saveApply() {
     rec.announce = document.getElementById('apply-announce').value.trim();
     rec.note = document.getElementById('apply-note').value.trim();
     rec.wonWhat = document.getElementById('apply-won').value.trim();
+    // 当選内容が空なら名義だけ残っても意味がないので一緒に消す
+    rec.wonNames = rec.wonWhat ? _wonSel.filter(n => rec.names.includes(n)) : [];
     saveHist();
   }
   closeApply();
@@ -1969,7 +2021,7 @@ function renderHistoryTab() {
   const nowKey = nowYear * 100 + (now.getMonth() + 1);
   const kuchi = r => Math.max(1, (r.names || []).length);
   const matchSearch = r => !histSearch ||
-    [r.label, (r.names||[]).join(' '), r.method, r.announce, r.wonWhat, r.note]
+    [r.label, (r.names||[]).join(' '), r.method, r.announce, r.wonWhat, (r.wonNames||[]).join(' '), r.note]
       .join(' ').toLowerCase().includes(histSearch);
   // 月内の行HTMLを組み立てて返す（番号は応募順に付け、表示は新しい応募が上）
   const buildRows = (allRows) => {
@@ -1983,7 +2035,8 @@ function renderHistoryTab() {
       if (!matchSearch(r)) return;
       vis++;
       const names = (r.names || []).join('・');
-      const won = r.wonWhat ? ` <span class="hist-won-text">🎯 ${r.wonWhat}</span>` : '';
+      const wn = (r.wonNames || []).length ? (r.wonNames || []).join('・') + '：' : '';
+      const won = r.wonWhat ? ` <span class="hist-won-text">🎯 ${wn}${r.wonWhat}</span>` : '';
       const note = r.note ? `<div class="hist-note">📝 ${r.note}</div>` : '';
       rows.push(`<div class="hist-row${r.wonWhat ? ' won' : ''}" onclick="openApply('${id}')">
         ${nums.join('')} ${r.label}　<b>${names}</b>　${r.method || ''}　${r.announce || '－'}${won}${note}
@@ -2250,7 +2303,7 @@ function deleteMemoItem(id) {
 })();
 
 // ===== 新しい版の自動チェック（スマホのキャッシュ対策） =====
-const BUILD_STAMP = 1788617390383;
+const BUILD_STAMP = 1788756677149;
 let lastUpdateCheck = 0;
 function checkForUpdate() {
   if (location.protocol !== 'https:' && location.protocol !== 'http:') return;
